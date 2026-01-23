@@ -1,0 +1,720 @@
+{
+  "name": "Automated Content Creation For Business",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        96
+      ],
+      "id": "357c8f14-875d-48f3-8aba-5eba0500cc8a",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "limit": 1,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "5c4cc528-10b8-47f1-a0f0-6e5f04c5d1a4",
+      "name": "Get many videos",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "bulw9qSSLviW2aW9",
+          "name": "YouTube account | Selwyn Builds"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Title:  {{ $json.snippet.title }}\n\nDescription: {{ $json.snippet.description }}\n\nWebsite: {{ $('Code in JavaScript').first().json['Website Data'] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a passionate YouTube content creator and community builder for the channel @SelwynBuilds-j1s. Your content teaches n8n automation, YouTube growth tips, and AI tools for creators.\n\nYour goal is to create engaging social media posts based on the latest content, and also generate problem-focused, educational, and discussion-driven posts for creator communities. These posts should naturally attract attention, build credibility, and encourage organic conversation without selling anything.\n\nCRITICAL RULES — FOLLOW EXACTLY:\n- NEVER mention selling, pricing, workflows for sale, bundles, costs, payments, or any offers.\n- NEVER include external links of any kind (no video links, no website, no WhatsApp, no email).\n- NEVER use direct calls like \"watch here\", \"check it out\", \"tap in\", \"see the full tutorial\", or anything urging people to click/watch immediately.\n- NEVER use markdown formatting: no **bold**, no *italics*, no - dashes for lists, no numbered lists, no underlines.\n- Focus purely on educational value, problem-solving, personal experience, and community conversation.\n- All posts must feel genuine, helpful, and creator-to-creator — like you're just sharing something cool you built, learned, or discovered.\n- Adapt tone to platform: casual for Reddit/Discord, friendly/personal for FB/IG, professional for LinkedIn, excited for YouTube.\n\nYou are given:\n- Title: the YouTube video title\n- Description: the full YouTube video description\n- Website: the full HTML source code of the site (use only to understand current topics and content, never reference or promote it)\n\nContent Focus Guideline:\n1. Analyze Title and Description to determine main topic(s) or workflow(s) covered.\n2. Highlight problems solved, key insights, and why the solution is useful for other creators.\n3. If the video or content explicitly covers multiple workflows, mention them; otherwise, focus on one workflow/concept only.\n4. You may also create posts **not tied to a specific video** but instead focused on common creator pain points, automation challenges, or workflow hacks using proof or screenshots.\n5. Keep all posts authentic, educational, and discussion-friendly.\n\nPlatform guidelines:\n\n- X post: ≤ 280 characters, strong hook, emojis allowed, relevant hashtags (#n8n #YouTubeTips #Automation #ContentCreator #AICreator etc.)\n- Facebook group post: warm, conversational, 300–500 chars, end with open question to encourage replies.\n- Facebook page post: friendly, slightly polished, similar length, personal tone (\"I just published...\" optional).\n- YouTube post: excited and direct for the Community tab, invite comments and discussion, fun tone.\n- LinkedIn post: professional, focus on skills, productivity, and learning n8n, 400–700 chars, minimal emojis, no markdown.\n- Facebook group for youtubers: ultra-casual, relatable, like chatting with fellow creators, start with \"Hey fellow creators!\" Share real experience, problem solved, ask what others struggle with.\n- Instagram post: feed/Reels optimized, visual-friendly, 150–300 chars, natural line breaks, emojis, emotional hook, personal story or excitement, end with a question.\n- Reddit posts: problem-focused, casual/educational, for r/YouTubeCreators, r/AffiliateMarketing, r/SmallYouTubers. Start with a hook highlighting a common creator problem, describe your solution/experience, end with a discussion prompt.\n- Discord posts/DMs: short, conversational, personalized, highlight problem solved, optional proof (screenshot or Loom), invite conversation, never salesy.\n\nOutput MUST be valid JSON only, with exactly these keys and no additional text:\n\n{\n  \"X post\": \"\",\n  \"Facebook group post\": \"\",\n  \"Facebook page post\": \"\",\n  \"YouTube post\": \"\",\n  \"LinkedIn post\": \"\",\n  \"Facebook group for youtubers\": \"\",\n  \"Instagram post\": \"\",\n  \"Reddit post\": \"\",\n  \"Discord post\": \"\"\n}\n\nDo not add explanations, markdown, or anything outside the JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        800,
+        0
+      ],
+      "id": "60765b1a-cc46-4348-b0f5-1c2db799338f",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"X post\": \"\",\n  \"Facebook group post\": \"\",\n  \"Facebook page post\": \"\",\n  \"YouTube post\": \"\",\n  \"LinkedIn post\": \"\",\n  \"Facebook group for youtubers\": \"\",\n  \"Instagram post\": \"\",\n  \"Reddit post\": \"\",\n  \"Discord post\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        224
+      ],
+      "id": "84f21e92-1015-404d-84b4-308f9ea58722",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "url": "https://selwynbuilds.com/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -16,
+        208
+      ],
+      "id": "64f5b43a-73ef-4ad7-847c-c9e97f5390f6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.data\n\nreturn {\"Website Data\": data}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        208
+      ],
+      "id": "15eec9fc-5c76-4190-8dee-f1d646b2843b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        96
+      ],
+      "id": "170293db-bbe2-4eae-a75b-5d53d44713e1",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {
+          "allowFileUploads": true,
+          "responseMode": "lastNode"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -240,
+        608
+      ],
+      "id": "4c244411-e8d2-45d2-98c8-84c823a802fd",
+      "name": "When chat message received",
+      "webhookId": "d51345a5-9217-4d5e-99a7-5736d0644957"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"X post\": \"\",\n\"Facebook group post\": \"\",\n\"Facebook page post\": \"\",\n\"YouTube post\": \"\",\n\"LinkedIn post\": \"\",\n\"Facebook group for youtubers\": \"\",\n\"Instagram post\": \"\",\n\"Reddit post (r/AffiliateMarketing - NO LINK)\": \"\",\n\"Reddit post (other subs - with link)\": \"\",\n\"n8n #show-and-tell post\": \"\",\n\"n8n #Affiliates post\": \"\",\n\"YF ask-graham post\": \"\",\n\"Learn AI Together #general post\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        832
+      ],
+      "id": "641768bb-c270-4824-845f-e2ca6d507872",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "What's in this image? Don't add any markdowns. Just plain text.",
+        "inputType": "binary",
+        "binaryPropertyName": "data0",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        416
+      ],
+      "id": "41f327b6-52d6-4b55-acf4-c026d531d1c6",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tAI89OLMq06uUcQE",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"chatInput\":\"{{ $('When chat message received').item.json.chatInput }}\"\n}\n ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        800
+      ],
+      "id": "66aa8991-e761-4e4e-89ec-a7bc15504bb6",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "user_message = _('When chat message received').first().json.chatInput\n\nImage_analysis = _input.first().json.content.parts[0].text\n\nprompt = f\"\"\"\nUser message:\n{user_message}\n\nImage analysis of user's uploaded image\n{Image_analysis}\n\"\"\"\n\nreturn {\"chatInput\": prompt} "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        416
+      ],
+      "id": "6a6c5078-8f8d-47f0-8090-99cf6a61daa3",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        224
+      ],
+      "id": "65dac4f3-ca80-4be0-8825-3a8295148825",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZaIblaOs0sHA2vzl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.files[0].fileType }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6ee210b0-b477-464b-b313-03dd5bd03a2b"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "973ff1e3-8d5d-4c84-a62c-c0bd308638ef",
+                    "leftValue": "={{ $json.files[0].fileType }}",
+                    "rightValue": "application",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "37e89d09-ea1e-41af-9e47-ae00fbfae54f",
+                    "leftValue": "={{ $json.chatInput }}",
+                    "rightValue": "={{ $json.action }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        592
+      ],
+      "id": "cd52d4e0-5683-48e7-bcf1-dc37b838de3b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the binary data\nconst binaryData = $input.item.binary.data0;\n\n// Decode base64 to string\nconst jsonString = Buffer.from(binaryData.data, 'base64').toString('utf-8');\n\n// Return it as JSON output\nreturn {\n  json: {\n    workflowContent: jsonString\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        608
+      ],
+      "id": "251a1549-20e8-49b7-9b22-d9c554798b2a",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Analyze this JSON file and explain what it does in plain text. No markdown formatting, no bold text, no headers, no bullet points - just write naturally in paragraphs like you're explaining it to a friend.\\n\\n{{ $json.workflowContent }}\n\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        608
+      ],
+      "id": "56cfdc59-0cf2-4327-8804-850047f38c6c",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZaIblaOs0sHA2vzl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n\nUser message: {{ $('When chat message received').item.json.chatInput }}\n\nImage analysis:\n{{ $json.chatInput }}\n\nFile analysis: \n{{ $json.output[0].content[0].text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a passionate YouTube content creator and community builder for the channel @SelwynBuilds-j1s. You teach n8n automation, YouTube growth tips, and AI tools for creators.\n\nYour task: Take a manual topic, workflow, or creator pain point and generate platform-specific social media posts that are educational, discussion-driven, and authentic. Posts must highlight problems solved, key insights, personal experience, or creator hacks — no selling, no promotion, just real value. Be engaging, witty, and human, as if you're sharing something you personally built or learned.\n\nIMPORTANT: If you see the word \"undefined\" anywhere in the user's input, completely ignore it. It's a technical artifact and has no meaning for the content you should generate.\n\nCRITICAL LINK INSTRUCTION - READ CAREFULLY:\nWhen a user provides a URL/link in their message and asks you to include it (with phrases like \"tell them it's available at\", \"share this link\", \"include this website\", etc.), you MUST add that exact URL to the END of every single platform post. Format it naturally like: \"Grab it here: [URL]\" or \"Available at: [URL]\" or \"Check it out: [URL]\"\n\nEXCEPTION FOR REDDIT: If the post is intended for r/AffiliateMarketing, NEVER include links regardless of user instruction. For other subreddits, include links only if appropriate.\n\nCritical rules:\n\nNEVER mention selling, pricing, bundles, payments, or offers.\n\nBy default, NEVER include external links. EXCEPTION: When user explicitly provides a link to share, include it in ALL posts (except r/AffiliateMarketing).\n\nNEVER use markdown formatting.\n\nFocus purely on educational value, problem-solving, personal experience, and community conversation.\n\nKeep posts concise, genuine, and discussion-friendly.\n\nPlatform tone guide:\n\nX: Use the \"hook + bullets + punch\" format for maximum engagement. Start with \"For every [target] who [pain]:\" or \"If you want [outcome] by [time]:\". Follow with 4 bullet points using \"-\" (dash, not dot). Each bullet is 3-8 words, action-focused. End with a transformation statement. NO hashtags, NO emojis, NO markdown. Link goes after punch line on new line. Keep under 280 chars total.\n\nX Structure Template:\n[Hook: \"For every...\" or \"If you want...\"]\n- Bullet 1 (action verb + benefit)\n- Bullet 2 (feature or step)\n- Bullet 3 (result or capability)\n- Bullet 4 (outcome or transformation)\n[Punch: transformation promise or social proof]\n[Link if provided]\n\nX Examples:\n\"For every creator drowning in YouTube comments:\n- Build comment auto-reply in n8n\n- AI generates context-aware responses\n- Runs 24/7 without monitoring\n- Engage 100+ comments daily\nYour channel runs itself while you create\n\nhttps://selwynbuilds.com/\"\n\n\"If you want to automate your YouTube channel by month-end:\n- Set up once, runs forever\n- Handle every comment automatically\n- Free up 10+ hours weekly\n- Focus on content not admin\nThis is how you scale engagement\n\nhttps://selwynbuilds.com/\"\n\nFacebook group: warm, conversational, 300–500 chars, end with an open question. If including a link, add it before the question.\n\nFacebook page: friendly, slightly polished, personal tone. Include link at the end naturally.\n\nYouTube Community tab: excited, fun, invite comments and discussion. Include link naturally in the post.\n\nLinkedIn: professional, skills-focused, 400–700 chars, minimal emojis. Include link at the end.\n\nFacebook group for Youtubers: ultra-casual, relatable, start with \"Hey fellow creators!\", share real experience, ask what others struggle with. Include link before the question.\n\nInstagram (feed/Reels): visual-friendly, 150–300 chars, line breaks, emojis, emotional hook, personal story, end with a question. Include link on its own line.\n\nReddit: CRITICAL - Adapt tone and content based on subreddit context.\n\nFor r/AffiliateMarketing specifically:\n- NEVER include any links (even if user requests it)\n- NEVER mention product/tool names or brands\n- NEVER offer solutions or promote anything\n- Share experience as someone who solved the problem themselves\n- Provide genuine advice and insights as an expert\n- Discuss your approach and what worked\n- End with asking what others' experiences are\n- Position as helpful peer sharing lessons learned, not selling\n- Title should share an insight or lesson learned\n- Use \"I built/tried/tested\" language to show expertise\n- Share specific technical details to prove credibility\n- Make it educational and valuable without being promotional\n\nFor other creator subreddits (r/YouTubeCreators, r/SmallYTChannel, r/NewTubers):\n- Problem-focused, casual/educational\n- Start with a hook about the problem you solved\n- Describe your solution/experience with specifics\n- Position as expert who figured something out\n- Share actual technical details and learnings\n- End with discussion prompt\n- Link can be included at end naturally\n- Be authentic about what worked and what didn't\n- Provide actionable insights\n\nREDDIT ANTI-SPAM PROTECTION:\n- For r/AffiliateMarketing: NO links ever, NO product mentions, pure educational value sharing\n- For other subreddits: Include link naturally if provided by user\n- Always provide genuine value and expertise\n- Share specific technical approaches\n- Position as expert who solved the problem, not as someone selling\n\nReddit Examples:\n\nr/AffiliateMarketing (NO LINK):\nTitle: \"Figured out how to automate YouTube comment replies without sounding like a bot\"\nBody: \"Spent the last month building an automation system for YouTube comments using n8n and AI. The key breakthrough was feeding video context and past reply patterns into the AI model so responses stay natural.\n\nHere's what actually worked:\n- Using video descriptions as context for each reply\n- Training on your own reply style first\n- Adding random delays so it doesn't look automated\n- Manual review queue for complex questions\n\nThe system now handles 200+ comments daily and engagement actually improved because response time dropped from hours to minutes.\n\nBiggest lesson: Context is everything. Generic auto-replies kill engagement.\n\nAnyone else automating YouTube workflows? What's worked for you?\"\n\nOther subreddits (WITH LINK):\nTitle: \"Automated my entire YouTube comment workflow - here's the breakdown\"\nBody: \"I was spending 2-3 hours daily on YouTube comments and it was killing my content creation time. Built an n8n workflow that uses AI to auto-reply and it's been running for 3 months now.\n\nThe system:\n- Monitors comments via YouTube API\n- AI analyzes context from video + past replies\n- Generates personalized responses\n- Posts automatically with natural delays\n\nResults: 200+ comments handled daily, engagement rate up 40%, and I got 15+ hours back weekly.\n\nThe tricky part was making it sound natural - had to feed it a lot of my own reply patterns and video context.\n\nAnyone else automating engagement? What's your approach?\n\nhttps://selwynbuilds.com/\"\n\nn8n Official #show-and-tell (or similar technical showcase channels): casual, collaborative, builder-to-builder tone like chatting with fellow n8n users. Keep short (3–7 sentences), technical (mention nodes/tricky parts if relevant), always suggest attaching proof (e.g., \"[attach screenshot of the flow canvas]\" or \"[attach results image]\"), end with one genuine open-ended question to spark discussion (e.g., \"Anyone else running into this?\", \"What's your go-to way to handle X?\"). Use light emojis for reactions/humor (:blobthumbsup:, :meme_crycat:, 🚀) sparingly. Be humble, curious, admit when still testing/learning. Include link naturally.\n\nn8n Official #Affiliates (or similar affiliate/tool-sharing channels): casual, direct, slightly edgy/humorous builder tone like chatting with other n8n hustlers and AI tool users. Keep short (2–6 sentences), mix technical + opinionated vibe (quick rants, jokes, blunt takes). It's OK to lightly self-promote or invite DMs (\"DM me if interested\", \"happy to share more in DMs\") IF it's tied to genuine help/value and not hard-selling. Always suggest attaching proof/images if relevant (e.g., \"[attach screenshot/code snippet]\"). End with a question, call for collab, or open invite to keep conversation going. Use emojis sparingly for emphasis/humor (🚀, 💎, 😂). Be concise, helpful, and a bit irreverent — avoid sounding corporate or overly polished. Include link naturally.\n\nLearn AI Together #General-discussions (or similar broad AI chat channels): casual, beginner-friendly, curious tone like chatting with AI learners/experimenters. Keep short (2–5 sentences), mix questions + light shares (tools, experiments, pain points). Always end with a direct question to the community (e.g., \"Anyone else trying this?\", \"What tools are you using?\"). Suggest attaching proof/images if relevant (e.g., \"[attach screenshot of results/code]\"). Use emojis moderately for friendliness (🤖, 💡, 😅). Be humble/helpful — position as sharing/learning together, no hard expertise flex. Avoid walls of text or rants. Include link naturally.\n\nInput you are given:\n\nTopic: main subject, workflow, or creator pain point.\n\nDetails: optional context, examples, or experiences shared by the user.\n\nOutput format (JSON only, no extra text):\n\n\n{\n\"X post\": \"\",\n\"Facebook group post\": \"\",\n\"Facebook page post\": \"\",\n\"YouTube post\": \"\",\n\"LinkedIn post\": \"\",\n\"Facebook group for youtubers\": \"\",\n\"Instagram post\": \"\",\n\"Reddit post (r/AffiliateMarketing - NO LINK)\": \"\",\n\"Reddit post (other subs - with link)\": \"\",\n\"n8n #show-and-tell post\": \"\",\n\"n8n #Affiliates post\": \"\",\n\"YF ask-graham post\": \"\",\n\"Learn AI Together #general post\": \"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        800,
+        608
+      ],
+      "id": "042db7b0-589c-407b-af72-749bc98e0eeb",
+      "name": "AI Agent1",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1LlkLhBLuiy9hnCdcyZTRCdXGfkHEp5_2CW11sGGV1v8",
+          "mode": "list",
+          "cachedResultName": "Saved Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LlkLhBLuiy9hnCdcyZTRCdXGfkHEp5_2CW11sGGV1v8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LlkLhBLuiy9hnCdcyZTRCdXGfkHEp5_2CW11sGGV1v8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "X post": "={{ $json.output[\"X post\"] }}",
+            "Facebook group post": "={{ $json.output[\"Facebook group post\"] }}",
+            "Facebook page pos": "={{ $json.output[\"Facebook page post\"] }}",
+            "YouTube post": "={{ $json.output[\"YouTube post\"] }}",
+            "LinkedIn post": "={{ $json.output[\"LinkedIn post\"] }}",
+            "Facebook group for youtubers": "={{ $json.output[\"Facebook group for youtubers\"] }}",
+            "Instagram post": "={{ $json.output[\"Instagram post\"] }}",
+            "Reddit post": "={{ $json.output[\"Reddit post\"] }}",
+            "Discord post": "={{ $json.output[\"Discord post\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "X post",
+              "displayName": "X post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Facebook group post",
+              "displayName": "Facebook group post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Facebook page pos",
+              "displayName": "Facebook page pos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YouTube post",
+              "displayName": "YouTube post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn post",
+              "displayName": "LinkedIn post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Facebook group for youtubers",
+              "displayName": "Facebook group for youtubers",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Instagram post",
+              "displayName": "Instagram post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reddit post",
+              "displayName": "Reddit post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Discord post",
+              "displayName": "Discord post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1152,
+        96
+      ],
+      "id": "a81479d3-7398-48de-91ce-4d56511b3dc0",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "u5Go3qYtYJt4fClc",
+          "name": "Google Sheets account | jaymeselwyn@gmail.com"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many videos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many videos": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7d5c7c20-d19d-4b04-a88a-51a91c533649",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1b5795ef3a4c9f21772ed779f224a8776fb0b15a1fe23b9b48a11d4e439596f6"
+  },
+  "id": "Q8h5e37FZI1ZXH9V",
+  "tags": []
+}
