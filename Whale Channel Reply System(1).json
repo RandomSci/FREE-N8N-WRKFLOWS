@@ -1,0 +1,1798 @@
+{
+  "name": "Whale Channel Reply System",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */8 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2128,
+        3040
+      ],
+      "id": "8878d132-8c0f-4a79-b8bc-eeb273032f7d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];\nconst queries = {\n  Monday: \"Automation\",\n  Tuesday: \"Affiliate Marketing\",\n  Wednesday: \"YouTube Growth\",\n  Thursday: \"Comment Ops\",\n  Friday: \"Video Production\",\n  Saturday: \"AI Workflows\",\n  Sunday: \"Strategy Review\"\n};\n\nconst day = days[now.getDay()];\nconst Search_ = queries[day] || \"Automation\";\n\nreturn [{ json: { Search_ } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1904,
+        3040
+      ],
+      "id": "a8eee0cf-0172-4bbc-aeba-8491026af626",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/search\n?part=snippet&q={{ $json.Search_ }}&type=video&maxResults=50&key=AIzaSyDV5etfLvMaBIVgmrRx8X2QZ-H4sMYZrvQ\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1680,
+        3040
+      ],
+      "id": "5d4f657e-d9da-41cd-9335-5f747a003df8",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.first().json.items;\n\nconst channelIds = items.map(item => item.snippet.channelId);\n\nconst uniqueChannelIds = [...new Set(channelIds)];\n\nreturn uniqueChannelIds.map(id => ({ json: { channelId: id } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1456,
+        3040
+      ],
+      "id": "50bfeecf-6e0f-4496-abcd-11a4129156b1",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1232,
+        3040
+      ],
+      "id": "ace3a932-6e78-46d2-ba51-58895d94f8fa",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Done",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        2560
+      ],
+      "id": "81ecccc5-52ca-4c31-a657-66b3910647be",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id={{ $json.channelId }}&key=AIzaSyDV5etfLvMaBIVgmrRx8X2QZ-H4sMYZrvQ\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1008,
+        2752
+      ],
+      "id": "a49edad4-b71b-49d6-b5ad-dc0c5f6b8107",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={{ $json.items[0].contentDetails.relatedPlaylists.uploads }}&maxResults=2&key=AIzaSyDV5etfLvMaBIVgmrRx8X2QZ-H4sMYZrvQ\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -784,
+        2752
+      ],
+      "id": "92400087-a2de-4ec1-aa8b-40abd47a4016",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/youtube/v3/comments?part=snippet",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"snippet\": {\n    \"parentId\": \"{{ $('Code in Python (Beta)1').item.json.commentID }}\",\n    \"textOriginal\": \"{{ $('Code in Python (Beta)1').item.json.Suggested_Reply }}\"\n  }\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3152,
+        2832
+      ],
+      "id": "f6cf615c-808c-4975-b795-e283c8c4f1fa",
+      "name": "Reply To Comment",
+      "alwaysOutputData": true,
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "foEeSuijTtnQXz8K",
+          "name": "YouTube account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9f6c8b17-7750-4a72-82cf-d293ebf77b46",
+              "leftValue": "={{ $('Video Comments').item.json.pageInfo.totalResults || 0}}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        2752
+      ],
+      "id": "d274217d-bd70-4520-b2c1-b11ea1245b5c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "videoID"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        2752
+      ],
+      "id": "4f74d2fe-825e-437f-8e18-14e47c7f3194",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json.videoID).flat();\nreturn items.map(id => ({ json: { videoID: id } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        2752
+      ],
+      "id": "8a497de9-9ef3-4d2e-b445-6c1df0226e79",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        560,
+        2848
+      ],
+      "id": "da5469d6-c47e-4d7f-867e-879bb89e659f",
+      "name": "Dumping Site"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/commentThreads",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"part\": \"snippet\",\n  \"videoId\": \"{{ $json.videoID }}\",\n  \"maxResults\": 11,\n  \"order\":\"relevance\"\n\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        112,
+        2752
+      ],
+      "id": "51ef3fae-807d-4d80-8f02-aa65fb3804ae",
+      "name": "Video Comments",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "foEeSuijTtnQXz8K",
+          "name": "YouTube account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\n\nconst commentsData = [];\n\nfor (const item of allItems) {\n  if (item.json && item.json.items) {\n    for (const commentItem of item.json.items) {\n      const commentId = commentItem.id;\n      const commentText = commentItem.snippet.topLevelComment.snippet.textOriginal;\n      const videoId = commentItem.snippet.videoId;\n      const channelId = commentItem.snippet.channelId;\n\n      commentsData.push({\n        commentID: commentId,\n        videoID: videoId,\n        channelID: channelId,\n        Comment: commentText,\n        videoURL: `https://www.youtube.com/watch?v=${videoId}`,\n        channelURL: `https://www.youtube.com/channel/${channelId}`\n      });\n    }\n  }\n}\n\nconst commentsList = commentsData.map(c =>\n  `Video ID: ${c.videoID}\\nChannel ID: ${c.channelID}\\nComment ID: ${c.commentID}\\nComment: ${c.Comment}`\n).join(\"\\n\\n\");\n\nconst prompt = `\nYou are helping someone reply to YouTube comments on OTHER people's videos to generate leads for YouTube automation services.\n\nCONTEXT: You provide YouTube automation services (comment management, workflow automation, content scheduling). You're replying to comments on COMPETITOR/RELATED channels to subtly showcase your expertise as a PEER, not as the video creator.\n\nTARGET COMMENTS - Reply ONLY to comments mentioning:\n✅ Time management struggles (\"takes too much time\", \"so time consuming\")\n✅ Scaling challenges (\"want to grow faster\", \"can't keep up\", \"need to scale\")\n✅ Manual work frustration (\"doing this manually\", \"repetitive tasks\")\n✅ Automation concerns/questions (\"how to automate\", \"is automation safe\", \"automation tools\")\n✅ Content creation struggles (\"hard to create content\", \"upload schedule\")\n✅ Engagement/reply struggles (\"can't reply to all\", \"managing comments is hard\")\n✅ Business/monetization questions (\"how to earn\", \"monetization tips\")\n✅ Workflow/productivity questions (\"your workflow\", \"how you manage\")\n✅ Tool recommendations requests (\"what tools do you use\", \"recommend software\")\n\nIGNORE COMPLETELY:\n❌ Generic praise (\"nice video\", \"good job\", \"love it\")\n❌ Just emojis or very short comments\n❌ \"First\", \"Second\", position markers\n❌ Spam or promotional links\n❌ Religious/personal statements (unless they ask a question)\n❌ Simple thanks without context\n❌ Comments about subscribers/views without asking how\n\nREPLY RULES (CRITICAL):\n1. Keep replies SHORT: 2-3 sentences MAX (30-50 words total)\n2. Speak as a PEER/FELLOW CREATOR, NOT the video creator\n3. Share YOUR experience naturally (\"I struggled with this too\", \"I automated my workflow\")\n4. Never say \"my videos\", \"my channel\", \"in my content\" (you're not the video creator!)\n5. DON'T sound salesy or promotional\n6. Match their language/tone (English/Urdu/Roman Urdu)\n7. End with a light question or soft offer to help\n\nGOOD EXAMPLES:\nComment: \"I spend 5 hours daily replying to comments 😢\"\nReply: \"I feel you! I was spending the same until I automated my replies. Cut it from 5 hours to 30 mins. DM if you want tips!\"\n\nComment: \"Hard to keep up with content creation\"\nReply: \"Same here bro! I automated my workflow and now upload 3x more. Happy to share what tools I use if interested 👍\"\n\nBAD EXAMPLES (don't do this):\n\"That's a great point! In my videos, I've found that automation really helps my content creation process...\" ❌ (sounds like video creator)\n\"I completely understand the challenges you're facing with YouTube growth. Automation can be incredibly powerful when implemented correctly...\" ❌ (too long, too salesy)\n\nComments to analyze:\n${commentsList}\n\nReturn ONLY high-value comments worth replying to in this JSON format:\n[\n  {\n    \"videoID\": \"video_id_here\",\n    \"channelID\": \"channel_id_here\",\n    \"commentID\": \"comment_id_here\",\n    \"Comment\": \"original comment text\",\n    \"Suggested_Reply\": \"SHORT 2-3 sentence reply as a helpful peer (30-50 words)\",\n    \"Opportunity_Type\": \"automation_question|scaling_struggle|time_management|tool_request|workflow_question|content_creation|monetization\",\n    \"Sales_Potential\": \"high|medium|low\"\n  }\n]\n\nCRITICAL RULES:\n1. videoID and channelID MUST be the FIRST fields in each JSON object\n2. Be VERY selective. Out of 100 comments, maybe only 5-15 are worth replying to\n3. Quality over quantity!\n`;\n\nreturn [{\n  json: {\n    prompt,\n    total_comments_analyzed: commentsData.length,\n    comments_with_urls: commentsData\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        2656
+      ],
+      "id": "67981487-2523-4ebb-b711-ca47d737e338",
+      "name": "Prompt",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Prompt').first().json.prompt }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2352,
+        2656
+      ],
+      "id": "f1dcc6d4-885d-4ba1-b327-33c7933b6632",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.first().json.items;\n\nreturn items.map(item => {\n  const videoID = item.snippet.resourceId.videoId;\n\n  return {\n    json: {\n      videoID,\n      videoTitle: item.snippet.title,\n      publishedAt: item.snippet.publishedAt,\n      videoURL: `https://www.youtube.com/watch?v=${videoID}`\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        2752
+      ],
+      "id": "95531e90-e409-4145-81b8-25d480c9065d",
+      "name": "Videos"
+    },
+    {
+      "parameters": {
+        "jsCode": "const replies = $input.first().json.output;\n\nconst highPriority = replies\n  .filter(r => r.Sales_Potential.toLowerCase() === 'high')\n  .slice(0, 15);\n\nconst mediumPriority = replies\n  .filter(r => r.Sales_Potential.toLowerCase() === 'medium')\n  .slice(0, 5);\n\nconst finalReplies = [...highPriority, ...mediumPriority];\n\nreturn finalReplies.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        2656
+      ],
+      "id": "7659a497-aac3-46e0-ba3f-69dc17bc1dc4",
+      "name": "Code in Python (Beta)1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"array\",\n\t\"items\": {\n\t\t\"type\": \"object\",\n\t\t\"properties\": {\n\t\t\t\"commentID\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"videoID\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"channelID\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"Comment\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"Suggested_Reply\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"Opportunity_Type\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"Sales_Potential\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t}\n\t\t},\n\t\t\"required\": [\"commentID\", \"videoID\", \"channelID\", \"Comment\", \"Suggested_Reply\", \"Opportunity_Type\", \"Sales_Potential\"]\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2496,
+        2880
+      ],
+      "id": "2ae1c25e-29b5-44f8-8136-63e2772c4fb6",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1xc9oj03ep3FECCOCFDpnjfIjhJt57YV29SYzSKRlp38/",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xc9oj03ep3FECCOCFDpnjfIjhJt57YV29SYzSKRlp38/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date & Time": "={{ $now.setZone('Asia/Manila').format('yyyy-MM-dd hh:mm a') }}",
+            "CommentID": "={{ $json.commentID }}",
+            "Comment": "={{ $json.Comment }}",
+            "Opportunity Type": "={{ $json.Opportunity_Type }}",
+            " \nSuggested Reply": "={{ $json.Suggested_Reply }}",
+            "Sales Potential": "={{ $json.Sales_Potential }}",
+            "Video URL": "=https://www.youtube.com/watch?v={{ $json.videoID }}",
+            "YouTube Channel URL": "=https://www.youtube.com/channel/{{ $json.channelID }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date & Time",
+              "displayName": "Date & Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "YouTube Channel URL",
+              "displayName": "YouTube Channel URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Video URL",
+              "displayName": "Video URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CommentID",
+              "displayName": "CommentID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Comment",
+              "displayName": "Comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": " \nSuggested Reply",
+              "displayName": " \nSuggested Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Opportunity Type",
+              "displayName": "Opportunity Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sales Potential",
+              "displayName": "Sales Potential",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2928,
+        2656
+      ],
+      "id": "5c81825a-9294-4d85-ae51-2090582526c3",
+      "name": "Append row in sheet",
+      "retryOnFail": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jl5qgNTdM9DGXfgZ",
+          "name": "Google Sheets account | selwyn@selwynbuilds.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2368,
+        2880
+      ],
+      "id": "f7f96024-038e-42b5-a8f2-9ed604100baa",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "kVy04pWk6VitOjWI",
+          "name": "OpenAi account | selwyn@selwynbuilds.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const promptOutput = $input.first().json;\n\n// Extract the comments array\nconst comments = promptOutput.comments_with_urls || [];\n\n// Return each comment as a separate item\nreturn comments.map(comment => ({\n  json: {\n    commentID: comment.commentID,\n    videoID: comment.videoID,\n    channelID: comment.channelID,\n    Comment: comment.Comment,\n    videoURL: comment.videoURL,\n    channelURL: comment.channelURL\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        2656
+      ],
+      "id": "39873374-e716-4dfc-b1ca-d9025cb61034",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f954e8a0-cb95-4804-b498-58f0908d4211",
+              "leftValue": "={{ $json.commentID }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1456,
+        2656
+      ],
+      "id": "447a49fd-749e-422b-a3f5-7d9abdadc43c",
+      "name": "If1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2128,
+        2656
+      ],
+      "id": "54a1f457-cbd7-4d99-b939-dada35a65c12",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsCode": "const newComments = $('Code in JavaScript1').all() || [];\nconst trackingData = $('Get row(s) in sheet1').all() || [];\n\n// STEP 1: Find the column\nlet columnName = null;\n\nif (trackingData.length > 0) {\n  const cols = Object.keys(trackingData[0].json);\n  console.log(\"ALL COLUMNS:\", cols);\n\n  for (const col of cols) {\n    if (col.toLowerCase().includes('comment') && col.toLowerCase().includes('id')) {\n      columnName = col;\n      break;\n    } else if (col.toLowerCase().includes('comment') || col.toLowerCase().includes('id')) {\n      columnName = col;\n    }\n  }\n}\n\n// STEP 2: Extract IDs\nlet existingIds = new Set();\n\nif (!columnName) {\n  console.log(\"WARNING: No comment ID column found, assuming empty sheet\");\n} else {\n  for (const row of trackingData) {\n    const rawValue = row.json[columnName];\n\n    if (rawValue) {\n      const strVal = String(rawValue).trim();\n\n      if (strVal.includes(',')) {\n        for (const part of strVal.split(',')) {\n          const trimmed = part.trim();\n          if (trimmed) existingIds.add(trimmed);\n        }\n      } else if (strVal) {\n        existingIds.add(strVal);\n      }\n    }\n  }\n}\n\nconsole.log(`Found ${existingIds.size} existing IDs`);\n\n// STEP 3: Filter with paranoid checks\nconst filtered = [];\nconst seenInThisRun = new Set();\n\nfor (const comment of newComments) {\n  const cid = String(comment.json?.commentID || '').trim();\n\n  if (!cid) {\n    console.log(\"Skipping comment: missing ID\");\n    continue;\n  }\n\n  if (existingIds.has(cid)) {\n    console.log(`Blocked: ${cid} (in sheet)`);\n    continue;\n  }\n\n  if (seenInThisRun.has(cid)) {\n    console.log(`Blocked: ${cid} (duplicate in this batch)`);\n    continue;\n  }\n\n  seenInThisRun.add(cid);\n  filtered.push(comment.json);\n}\n\nconsole.log(`Passing ${filtered.length} comments after deduplication`);\n\nreturn filtered.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        2656
+      ],
+      "id": "f4e8dc81-64b9-4059-be71-0c8bcc03a91f",
+      "name": "Code in Python (Beta)2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1mYI0HXZMEWH_tBOK3lXCWeajSGnqUEes8a3e5N0wkjw",
+          "mode": "list",
+          "cachedResultName": "YouTube Comment IDs Sub Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mYI0HXZMEWH_tBOK3lXCWeajSGnqUEes8a3e5N0wkjw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mYI0HXZMEWH_tBOK3lXCWeajSGnqUEes8a3e5N0wkjw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Comment IDs": "={{ $json.commentID }}"
+          },
+          "matchingColumns": [
+            "Comment IDs"
+          ],
+          "schema": [
+            {
+              "id": "Comment IDs",
+              "displayName": "Comment IDs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        2656
+      ],
+      "id": "2f887444-21bf-4a56-9b3d-e085ffe0b16e",
+      "name": "Append row in sheet1",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jl5qgNTdM9DGXfgZ",
+          "name": "Google Sheets account | selwyn@selwynbuilds.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1mYI0HXZMEWH_tBOK3lXCWeajSGnqUEes8a3e5N0wkjw",
+          "mode": "list",
+          "cachedResultName": "YouTube Comment IDs Sub Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mYI0HXZMEWH_tBOK3lXCWeajSGnqUEes8a3e5N0wkjw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mYI0HXZMEWH_tBOK3lXCWeajSGnqUEes8a3e5N0wkjw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1008,
+        2656
+      ],
+      "id": "5c07f222-08ba-4ac5-b132-34263d8c66d9",
+      "name": "Get row(s) in sheet1",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jl5qgNTdM9DGXfgZ",
+          "name": "Google Sheets account | selwyn@selwynbuilds.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\n\nconst commentsData = [];\n\nfor (const item of allItems) {\n  if (item.json && item.json.items) {\n    for (const commentItem of item.json.items) {\n      const commentId = commentItem.id;\n      const commentText = commentItem.snippet.topLevelComment.snippet.textOriginal;\n      const videoId = commentItem.snippet.videoId;\n      const channelId = commentItem.snippet.channelId;\n\n      commentsData.push({\n        commentID: commentId,\n        videoID: videoId,\n        channelID: channelId,\n        Comment: commentText,\n        videoURL: `https://www.youtube.com/watch?v=${videoId}`,\n        channelURL: `https://www.youtube.com/channel/${channelId}`\n      });\n    }\n  }\n}\n\nconst commentsList = commentsData.map(c =>\n  `Video ID: ${c.videoID}\\nChannel ID: ${c.channelID}\\nComment ID: ${c.commentID}\\nComment: ${c.Comment}`\n).join(\"\\n\\n\");\n\nconst prompt = `\nYou are helping someone reply to YouTube comments on OTHER people's videos to generate leads for YouTube automation services.\n\nCONTEXT: You provide YouTube automation services (comment management, workflow automation, content scheduling). You're replying to comments on COMPETITOR/RELATED channels to subtly showcase your expertise as a PEER, not as the video creator.\n\nTARGET COMMENTS - Reply ONLY to comments mentioning:\n✅ Time management struggles (\"takes too much time\", \"so time consuming\")\n✅ Scaling challenges (\"want to grow faster\", \"can't keep up\", \"need to scale\")\n✅ Manual work frustration (\"doing this manually\", \"repetitive tasks\")\n✅ Automation concerns/questions (\"how to automate\", \"is automation safe\", \"automation tools\")\n✅ Content creation struggles (\"hard to create content\", \"upload schedule\")\n✅ Engagement/reply struggles (\"can't reply to all\", \"managing comments is hard\")\n✅ Business/monetization questions (\"how to earn\", \"monetization tips\")\n✅ Workflow/productivity questions (\"your workflow\", \"how you manage\")\n✅ Tool recommendations requests (\"what tools do you use\", \"recommend software\")\n\nIGNORE COMPLETELY:\n❌ Generic praise (\"nice video\", \"good job\", \"love it\")\n❌ Just emojis or very short comments\n❌ \"First\", \"Second\", position markers\n❌ Spam or promotional links\n❌ Religious/personal statements (unless they ask a question)\n❌ Simple thanks without context\n❌ Comments about subscribers/views without asking how\n\nREPLY RULES (CRITICAL):\n1. Keep replies SHORT: 2-3 sentences MAX (30-50 words total)\n2. Speak as a PEER/FELLOW CREATOR, NOT the video creator\n3. Share YOUR experience naturally (\"I struggled with this too\", \"I automated my workflow\")\n4. Never say \"my videos\", \"my channel\", \"in my content\" (you're not the video creator!)\n5. DON'T sound salesy or promotional\n6. Match their language/tone (English/Urdu/Roman Urdu)\n7. End with a light question or soft offer to help\n\nGOOD EXAMPLES:\nComment: \"I spend 5 hours daily replying to comments 😢\"\nReply: \"I feel you! I was spending the same until I automated my replies. Cut it from 5 hours to 30 mins. DM if you want tips!\"\n\nComment: \"Hard to keep up with content creation\"\nReply: \"Same here bro! I automated my workflow and now upload 3x more. Happy to share what tools I use if interested 👍\"\n\nBAD EXAMPLES (don't do this):\n\"That's a great point! In my videos, I've found that automation really helps my content creation process...\" ❌ (sounds like video creator)\n\"I completely understand the challenges you're facing with YouTube growth. Automation can be incredibly powerful when implemented correctly...\" ❌ (too long, too salesy)\n\nComments to analyze:\n${commentsList}\n\nReturn ONLY high-value comments worth replying to in this JSON format:\n[\n  {\n    \"videoID\": \"video_id_here\",\n    \"channelID\": \"channel_id_here\",\n    \"commentID\": \"comment_id_here\",\n    \"Comment\": \"original comment text\",\n    \"Suggested_Reply\": \"SHORT 2-3 sentence reply as a helpful peer (30-50 words)\",\n    \"Opportunity_Type\": \"automation_question|scaling_struggle|time_management|tool_request|workflow_question|content_creation|monetization\",\n    \"Sales_Potential\": \"high|medium|low\"\n  }\n]\n\nCRITICAL RULES:\n1. videoID and channelID MUST be the FIRST fields in each JSON object\n2. Be VERY selective. Out of 100 comments, maybe only 5-15 are worth replying to\n3. Quality over quantity!\n`;\n\nreturn [{\n  json: {\n    prompt,\n    total_comments_analyzed: commentsData.length,\n    comments_with_urls: commentsData\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        2656
+      ],
+      "id": "dc6e6320-ded2-41cd-9833-f99de5c7a913",
+      "name": "Code in Python (Beta)3"
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "Xa3Un5HYidE8VMKZu",
+          "mode": "list",
+          "cachedResultName": "Youtube Channel Email Scraper (dataovercoffee/Youtube-Channel-Business-Email-Scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/Xa3Un5HYidE8VMKZu/input"
+        },
+        "customBody": "={\n    \"channels\": [{{ JSON.stringify($json[\"YouTube Channel URL\"]) }}]\n} "
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        5376
+      ],
+      "id": "0b6f5c83-936a-43f1-9691-5643be468a23",
+      "name": "Run an Actor and get dataset",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2064,
+        5472
+      ],
+      "id": "f5b6a9f0-198b-4ed9-a85e-b55e523bd342",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "={{ $('Code in JavaScript3').item.json.Subject }}",
+        "emailType": "text",
+        "message": "={{ $('Code in JavaScript3').item.json[\"Generated Message\"] }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2096,
+        5376
+      ],
+      "id": "e4e6a0e9-889e-476d-9188-24000698480e",
+      "name": "Send a message",
+      "webhookId": "fc5c94eb-ffe3-4699-9e5c-3c47d000d0a7",
+      "executeOnce": false,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FSsJULLCpVY4Tpiv",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json.channels;\n\nconst results = [];\n\nfor (const url of input) {\n  let channelId = null;\n\n  if (url.includes(\"/channel/\")) {\n    channelId = url.split(\"/channel/\")[1].split(/[/?]/)[0];\n  }\n\n  results.push({\n    json: {\n      channelUrl: url,\n    }\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1168,
+        5376
+      ],
+      "id": "289eaf3d-4161-4112-9c77-90889b522428",
+      "name": "Channel IDs",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1IMiQjoTJRrAddEVLTcBCKvriz2J5m8PKekqq0Qx-iZw",
+          "mode": "list",
+          "cachedResultName": "Messaged Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IMiQjoTJRrAddEVLTcBCKvriz2J5m8PKekqq0Qx-iZw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IMiQjoTJRrAddEVLTcBCKvriz2J5m8PKekqq0Qx-iZw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -944,
+        5376
+      ],
+      "id": "282596b1-5aca-40a9-b3fc-12ad41d6aaaa",
+      "name": "Messaged Leads Data",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jl5qgNTdM9DGXfgZ",
+          "name": "Google Sheets account | selwyn@selwynbuilds.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1xc9oj03ep3FECCOCFDpnjfIjhJt57YV29SYzSKRlp38",
+          "mode": "list",
+          "cachedResultName": "Whale Channel Reply System",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xc9oj03ep3FECCOCFDpnjfIjhJt57YV29SYzSKRlp38/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xc9oj03ep3FECCOCFDpnjfIjhJt57YV29SYzSKRlp38/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1840,
+        5472
+      ],
+      "id": "a4a1fe0d-aa23-4974-8d7c-5135da7e0b68",
+      "name": "Whale Channel Reply System Data",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jl5qgNTdM9DGXfgZ",
+          "name": "Google Sheets account | selwyn@selwynbuilds.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst uniqueUrls = new Set();\n\nitems.forEach(item => {\n  const channelUrl = item.json[\"YouTube Channel URL\"];\n  if (channelUrl && channelUrl.trim() !== \"\") {\n    uniqueUrls.add(channelUrl.trim());\n  }\n});\n\nconst channelsArray = Array.from(uniqueUrls);\n\n\nreturn [{\n  json: {\n    channels: channelsArray\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1616,
+        5472
+      ],
+      "id": "332023c0-5425-4c05-8853-762cf29b595f",
+      "name": "Deduplication | YouTube Channels"
+    },
+    {
+      "parameters": {
+        "jsCode": "const WCRSD_items = $('Whale Channel Reply System Data').all();\nconst MLD_items = $input.all();\n\nconst WCRSD_channels = WCRSD_items.map(item => item.json['YouTube Channel URL']).filter(url => url);\n\nconst MLD_channels_set = new Set(\n  MLD_items.map(item => item.json['YouTube Channel URL']).filter(url => url)\n);\n\nconst newChannels = WCRSD_channels.filter(url => !MLD_channels_set.has(url));\n\nconst uniqueNewChannels = [...new Set(newChannels)];\n\nconst channelsWithIds = uniqueNewChannels.map(url => {\n  const channelId = url.split('/').pop(); \n  return {\n    url: url,\n    channelId: channelId\n  };\n});\n\nreturn [{\n  json: {\n    channels: channelsWithIds,\n    channelIds: channelsWithIds.map(ch => ch.channelId),\n    channelUrls: uniqueNewChannels,\n    totalWCRSD: WCRSD_channels.length,\n    totalMLD: MLD_channels_set.size,\n    newChannelsFound: uniqueNewChannels.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        5376
+      ],
+      "id": "0de3347b-4bf8-4939-af68-85d99a294a43",
+      "name": "Deduplication | For Google Sheets"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "channels",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        5376
+      ],
+      "id": "97eb1e0e-d5ac-406e-b899-2ebc12a28031",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst results = items\n  .filter(item => {\n    return item.json.items && item.json.items.length > 0;\n  })\n  .map(item => {\n    const channelData = item.json.items[0];\n    const uploadsPlaylistId = channelData.contentDetails.relatedPlaylists.uploads;\n    \n    return {\n      json: {\n        channelId: channelData.id,\n        channelTitle: channelData.snippet.title,\n        channelDescription: channelData.snippet.description,\n        \n        uploadsPlaylistId: uploadsPlaylistId\n      }\n    };\n  });\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        5376
+      ],
+      "id": "5f35639f-e193-4ffd-b038-265a8b3932a2",
+      "name": "Upload Playlists"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={{ $json.uploadsPlaylistId }}&maxResults=1&key=AIzaSyDV5etfLvMaBIVgmrRx8X2QZ-H4sMYZrvQ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        176,
+        5376
+      ],
+      "id": "46f779ab-eb0b-46eb-b1e8-a38545bf875f",
+      "name": "LATEST video"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id={{ $json.channelId }}&key=AIzaSyDV5etfLvMaBIVgmrRx8X2QZ-H4sMYZrvQ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -272,
+        5376
+      ],
+      "id": "b6e64db9-049d-4d80-bbc3-303aa0443dbe",
+      "name": "Channel Details"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst uploadPlaylistItems = $('Upload Playlists').all();\n\nconst results = items.map((item, index) => {\n  const channelInfo = uploadPlaylistItems[index].json;\n  \n  const latestVideo = item.json.items[0].snippet;\n  \n  return {\n    json: {\n      channelId: channelInfo.channelId,\n      channelTitle: channelInfo.channelTitle,\n      channelDescription: channelInfo.channelDescription,\n      \n      latestVideoTitle: latestVideo.title,\n      latestVideoDescription: latestVideo.description,\n      latestVideoPublishedAt: latestVideo.publishedAt,\n      videoId: latestVideo.resourceId.videoId,\n      videoUrl: `https://www.youtube.com/watch?v=${latestVideo.resourceId.videoId}`\n    }\n  };\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        5376
+      ],
+      "id": "eba945b6-b344-419d-b64f-979654f53866",
+      "name": "Data For AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prompt = `You are writing cold outreach emails on behalf of AlgoNova Labs.\n\nWe offer a YouTube AI Community Manager — a 24/7 AI agent that replies to comments, pins CTAs, and flags leads automatically. Our hook is a FREE Channel Audit that shows exactly where engagement and leads are being lost.\n\nTARGET: YouTubers with 10k–500k subscribers who are already posting consistently. These are people who have traction but are losing engagement and leads because they can't keep up manually.\n\nTHE CORE INSIGHT TO COMMUNICATE:\nThey don't lack views. They lack a SYSTEM. Manual comment management at their scale leaks 15-20% of high-intent leads — people who commented, were interested, but never got a response fast enough.\n\nFOR EACH CHANNEL BELOW, write ONE outreach message using the Channel Title, Description, and Latest Video Title provided.\n\nOUTPUT: Valid JSON array only. No extra text, no markdown, no explanation.\n\nJSON Structure:\n[\n  {\n    \"YouTube Channel URL\": \"https://www.youtube.com/channel/CHANNEL_ID\",\n    \"Channel ID\": \"CHANNEL_ID\",\n    \"Niche\": \"identified_niche\",\n    \"Generated Message\": \"the outreach message\",\n    \"Subject\": \"the subject line\"\n  }\n]\n\nCHANNELS TO PROCESS:\n${formattedData}`;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        5376
+      ],
+      "id": "6bbc2623-839b-459f-9343-f413d6632689",
+      "name": "AI Agent Prompt"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        624,
+        5376
+      ],
+      "id": "51e80027-0f30-4b45-a363-e1cd3985516d",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "jsCode": "let aiResponse;\ntry {\n  const inputData = $input.first().json;\n\n  if (inputData.output && Array.isArray(inputData.output)) {\n    // Your actual structure: output[0].content[0].text\n    const firstOutput = inputData.output[0];\n    if (firstOutput && firstOutput.content && firstOutput.content[0] && firstOutput.content[0].text) {\n      aiResponse = firstOutput.content[0].text;\n    } else {\n      throw new Error('output array exists but missing content[0].text');\n    }\n  } else if (inputData.content && inputData.content.parts && inputData.content.parts[0]) {\n    aiResponse = inputData.content.parts[0].text;\n  } else if (inputData.message && inputData.message.content && inputData.message.content[0]) {\n    aiResponse = inputData.message.content[0].text;\n  } else if (inputData.text) {\n    aiResponse = inputData.text;\n  } else if (typeof inputData === 'string') {\n    aiResponse = inputData;\n  } else {\n    return [{\n      json: {\n        error: true,\n        message: 'Unknown AI response structure',\n        rawResponse: JSON.stringify(inputData, null, 2)\n      }\n    }];\n  }\n} catch (error) {\n  return [{\n    json: {\n      error: true,\n      message: `Error accessing AI response: ${error.message}`,\n      rawInput: JSON.stringify($input.first().json, null, 2)\n    }\n  }];\n}\n\nlet parsedData;\ntry {\n  let cleanedResponse = aiResponse.trim();\n\n  if (cleanedResponse.startsWith('```json')) {\n    cleanedResponse = cleanedResponse.replace(/^```json\\n?/, '').replace(/\\n?```$/, '');\n  } else if (cleanedResponse.startsWith('```')) {\n    cleanedResponse = cleanedResponse.replace(/^```\\n?/, '').replace(/\\n?```$/, '');\n  }\n\n  parsedData = JSON.parse(cleanedResponse);\n} catch (error) {\n  return [{\n    json: {\n      error: true,\n      message: `Failed to parse JSON: ${error.message}`,\n      rawResponse: aiResponse\n    }\n  }];\n}\n\nif (!Array.isArray(parsedData)) {\n  return [{\n    json: {\n      error: true,\n      message: 'AI response is not an array',\n      parsedData: parsedData\n    }\n  }];\n}\n\nconst results = parsedData.map((item) => {\n  const channelId = item['Channel ID'] || 'ERROR: Missing Channel ID';\n  return {\n    json: {\n      \"YouTube Channel URL\": `https://www.youtube.com/channel/${channelId}`,\n      \"Channel ID\": channelId,\n      \"Niche\": item['Niche'] || 'ERROR: Missing Niche',\n      \"Generated Message\": item['Generated Message'] || 'ERROR: Missing Message',\n      \"Subject\": item['Subject'] || 'ERROR: Missing Subject'\n    }\n  };\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        5376
+      ],
+      "id": "414e102d-bb1d-4831-9be5-e97a49a118ec",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1IMiQjoTJRrAddEVLTcBCKvriz2J5m8PKekqq0Qx-iZw",
+          "mode": "list",
+          "cachedResultName": "Messaged Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IMiQjoTJRrAddEVLTcBCKvriz2J5m8PKekqq0Qx-iZw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IMiQjoTJRrAddEVLTcBCKvriz2J5m8PKekqq0Qx-iZw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date & Time": "={{ $now.setZone('Asia/Manila').format('yyyy-MM-dd hh:mm a') }}",
+            "YouTube Channel URL": "={{ $('Code in JavaScript3').item.json[\"YouTube Channel URL\"] }}",
+            "Niche": "={{ $('Code in JavaScript3').item.json.Niche }}",
+            "Generated Message": "={{ $('Code in JavaScript3').item.json[\"Generated Message\"] }}",
+            "Email": "=selwyn@selwynbuilds.com",
+            "Subject": "={{ $('Code in JavaScript3').item.json.Subject }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date & Time",
+              "displayName": "Date & Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YouTube Channel URL",
+              "displayName": "YouTube Channel URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Niche",
+              "displayName": "Niche",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Generated Message",
+              "displayName": "Generated Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2320,
+        5376
+      ],
+      "id": "48257ac2-68e1-4d01-bdc0-ce4309375447",
+      "name": "Messaged Leads New Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jl5qgNTdM9DGXfgZ",
+          "name": "Google Sheets account | selwyn@selwynbuilds.com"
+        }
+      },
+      "notes": "{{ $('Run an Actor and get dataset').item.json.Email }} "
+    },
+    {
+      "parameters": {
+        "content": "# SpreadSheets\n\n## [Whale Channel Reply System](https://docs.google.com/spreadsheets/d/1xc9oj03ep3FECCOCFDpnjfIjhJt57YV29SYzSKRlp38/edit?gid=0#gid=0)\n\n## [YouTube Comment IDs Sub Database](https://docs.google.com/spreadsheets/d/1mYI0HXZMEWH_tBOK3lXCWeajSGnqUEes8a3e5N0wkjw/edit?gid=0#gid=0)\n\n## [Messaged Leads](https://docs.google.com/spreadsheets/d/1IMiQjoTJRrAddEVLTcBCKvriz2J5m8PKekqq0Qx-iZw/edit?gid=0#gid=0)",
+        "height": 480,
+        "width": 1456
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        2000
+      ],
+      "typeVersion": 1,
+      "id": "b87a9a31-6602-4759-b0e5-0222f131d0b0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.chatInput }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "instructions": "You are an Outreach Architect for AlgoNova Labs. You write cold outreach emails for YouTube creators. Direct, confident, peer-to-peer. Not salesy. Not robotic.\n\n---\n\nWHAT WE SELL:\nA Free YouTube Channel Audit. That is the ONLY ask.\nThe audit shows creators where their leads are leaking because they have no system managing their comments.\nFunnel: Audit → Demo → Trial → Paid.\n\n---\n\nWHO WE'RE WRITING TO:\nYouTubers with 10k–500k subscribers. Already posting. Already have an audience. Losing leads in comments every day because they can't keep up manually. They don't lack views. They lack a SYSTEM.\n\n---\n\nDATA INTEGRITY (DO NOT BREAK THESE):\n- Output EXACTLY one JSON object per channel provided in the input. No more. No less.\n- \"YouTube Channel URL\" and \"Channel ID\" must be copied EXACTLY from the input. Do not construct, modify, or guess.\n- Do not invent or fabricate any data not provided in the input.\n- Output order must match input order.\n- If a field is missing from the input, work with what you have. Do not make something up.\n\n---\n\nNICHE IDENTIFICATION:\nIdentify each channel's niche from the Channel Title, Description, and Latest Video Title provided.\n\"YouTube Creator\" is NOT a niche. You are not allowed to use it.\nBe specific and accurate to what the channel actually covers:\n- Finance & Investing\n- Productivity & Self-Improvement\n- YouTube Shorts Growth\n- Creator Monetization & Side Hustles\n- Health & Fitness\n- Tech Reviews & Gadgets\n- Real Estate\n- Social Media Marketing\n- Personal Development\n- E-Commerce & Dropshipping\n- Mindset & Mental Health\n- Business & Entrepreneurship\nIf genuinely unclear, pick the closest accurate category. Never default to \"YouTube Creator.\"\n\n---\n\nSUBJECT LINE RULES:\n- 6-10 words MAX.\n- The subject must be the natural entry point into the first sentence of the body. Someone reads the subject, opens the email, and the first sentence feels like the continuation of that thought. They must feel like one connected piece — not two separate things.\n- Must sound like a real person noticed something specific. Not an ad. Not a report. Not a template.\n- Think: if a fellow creator you actually respect sent you this, would you open it?\n\nBANNED in subject lines:\n- The words: \"Projected,\" \"Benchmark,\" \"Identified,\" \"Evaluating,\" \"Audit,\" \"Leak\"\n- Any percentage number\n- Any colon followed by a video title\n- \"Quick question,\" \"Just wanted to,\" \"Free\"\n\nEvery subject in the batch must use a completely different structure. Before outputting, check all subjects. If any two follow the same pattern, rewrite one.\n\nGOOD direction (understand the intent, do not copy):\n  \"your bad ideas video got me thinking\"\n  \"real talk about your comment replies\"\n  \"something off with your engagement lately?\"\n  \"the monetization video — worth a second look\"\n  \"resourcefulness pays, but not for lost comments\"\n\n---\n\nMESSAGE BODY: EXACTLY 3 SENTENCES. NO MORE. NO LESS.\n\nSentence 1 — THE HOOK:\n- Must connect naturally to the subject line. The reader should feel like they are continuing the same thought.\n- Reference something SPECIFIC from their latest video or channel. Reference WHY it caught your attention — not WHAT the video is about.\n- Do not summarize the video back at them.\n\nBANNED in the hook:\n- \"insights,\" \"great strategy,\" \"game-changing,\" \"really hit home,\" \"stood out to me,\" \"love the content,\" \"awesome,\" \"inspiring,\" \"valuable,\" \"crucial,\" \"refreshing\"\n- Any generic praise. Any rephrasing of the video title back at them.\n\nHOOK EXAMPLES (study these, understand WHY they work):\n\nInput: Latest Video = \"What 1,000+ Hours of Bad YouTube Ideas Taught Me\"\nGOOD: \"Spending 1,000 hours testing bad ideas before finding what works — that's a brutal filter most creators skip.\"\nBAD:  \"Your insights on bad YouTube ideas really hit home.\"\n\nInput: Latest Video = \"How Much YouTube Paid Me in My First Year Monetized\"\nGOOD: \"First year monetization is where most creators hit a wall they don't talk about publicly — yours was refreshingly honest.\"\nBAD:  \"Your discussion on YouTube revenue growth stood out to me.\"\n\nInput: Latest Video = \"NEW YouTube Shorts Algorithm Hacks for More Views\"\nGOOD: \"Shorts algorithm is shifting fast — curious how you're seeing it land with actual view numbers.\"\nBAD:  \"The algorithm hacks you shared are game-changing.\"\n\n---\n\nSentence 2 — THE PUNCH:\n- Name their specific niche. Tie it to the lead leakage problem.\n- The 15-20% benchmark must feel niche-specific — not generic.\n- Say \"In the [niche] space\" or \"Creators in [niche]\" — never \"at your scale\" or \"channels like yours.\"\n- Vary the percentage between 15-20 across the batch. Do not use the same number twice.\n\n---\n\nSentence 3 — THE CTA:\n- One ask only: the free audit.\n- Direct and confident. Not soft. Not apologetic.\n- Before outputting, scan all CTAs in the batch. If any two match, rewrite one.\n\nCTA options (use each one only once per batch):\n  \"Want me to run that audit on your channel today?\"\n  \"I can have that ready for you by tomorrow.\"\n  \"Should I send over what I find?\"\n  \"Worth me taking a look?\"\n  \"Want me to have that ready for you this week?\"\n\n---\n\nFINAL CHECKLIST BEFORE OUTPUTTING:\n- Every message is exactly 3 sentences? YES or rewrite.\n- Every subject is 6-10 words? YES or rewrite.\n- Subject and first sentence feel like one connected thought? YES or rewrite.\n- No two subjects follow the same structure? YES or rewrite one.\n- No two CTAs are the same? YES or rewrite one.\n- No percentage appears in any subject line? YES or rewrite.\n- No banned words appear anywhere? YES or rewrite.\n- Channel IDs and URLs are copied exactly from input? YES or rewrite.\n- Output count matches input count? YES or rewrite.\n\n---\n\nOUTPUT: Valid JSON array only. Nothing else. No markdown. No explanation. No text before or after.\n\n[\n  {\n    \"YouTube Channel URL\": \"copied exactly from input\",\n    \"Channel ID\": \"copied exactly from input\",\n    \"Niche\": \"specific niche identified\",\n    \"Generated Message\": \"exactly 3 sentences\",\n    \"Subject\": \"6-10 words\"\n  }\n]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        5376
+      ],
+      "id": "85d8a968-6a41-43c6-b8d8-56653a4772ac",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "kVy04pWk6VitOjWI",
+          "name": "OpenAi account | selwyn@selwynbuilds.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3aa8975f-8e09-4513-bc03-af950757869a",
+              "leftValue": "={{ $json.channels }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1392,
+        5472
+      ],
+      "id": "1bd638a8-b578-4d1a-8c71-ff21574e8a68",
+      "name": "Check If there's any data"
+    },
+    {
+      "parameters": {
+        "chatId": "6472037679",
+        "text": "=[Whale Channel Reply System]\n\nNo Found leads. Need to scrape first.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1168,
+        5568
+      ],
+      "id": "28a1db7d-999d-486c-b4d9-324774f60fd8",
+      "name": "Send a text message",
+      "webhookId": "aac31dde-10b9-4f38-834f-9e890c6c429c",
+      "credentials": {
+        "telegramApi": {
+          "id": "JJ8ZlWoZjWtt4KIO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6472037679",
+        "text": "=[Whale Channel Reply System]\n\nNew Leads handled successfully!",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2544,
+        5376
+      ],
+      "id": "c2b1c0e4-1670-48c4-b4c1-bb5721d2cc7c",
+      "name": "Send a text message1",
+      "webhookId": "aac31dde-10b9-4f38-834f-9e890c6c429c",
+      "credentials": {
+        "telegramApi": {
+          "id": "JJ8ZlWoZjWtt4KIO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6472037679",
+        "text": "=[Whale Channel Reply System]\n\nFirst System Ran Succesfully. Result: \nhttps://docs.google.com/spreadsheets/d/1xc9oj03ep3FECCOCFDpnjfIjhJt57YV29SYzSKRlp38/edit?gid=0#gid=0",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -768,
+        2560
+      ],
+      "id": "bd77d54a-9544-4eb4-b67e-5b242c78636a",
+      "name": "Send a text message2",
+      "webhookId": "aac31dde-10b9-4f38-834f-9e890c6c429c",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "JJ8ZlWoZjWtt4KIO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 5
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        5376
+      ],
+      "id": "ecbd2685-dca1-4a22-af27-f9db225a1d6f",
+      "name": "Limit2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Done",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Done": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply To Comment": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dumping Site",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Video Comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dumping Site": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Comments": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Videos": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Reply To Comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)3": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run an Actor and get dataset": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Whale Channel Reply System Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Messaged Leads New Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel IDs": {
+      "main": [
+        [
+          {
+            "node": "Messaged Leads Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Messaged Leads Data": {
+      "main": [
+        [
+          {
+            "node": "Deduplication | For Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Whale Channel Reply System Data": {
+      "main": [
+        [
+          {
+            "node": "Deduplication | YouTube Channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplication | YouTube Channels": {
+      "main": [
+        [
+          {
+            "node": "Check If there's any data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplication | For Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Channel Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Playlists": {
+      "main": [
+        [
+          {
+            "node": "LATEST video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LATEST video": {
+      "main": [
+        [
+          {
+            "node": "Data For AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel Details": {
+      "main": [
+        [
+          {
+            "node": "Upload Playlists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data For AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Prompt": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Limit2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Messaged Leads New Data": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If there's any data": {
+      "main": [
+        [
+          {
+            "node": "Channel IDs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit2": {
+      "main": [
+        [
+          {
+            "node": "Run an Actor and get dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "eeaf39f0-1372-4226-86c7-59d04c6a618a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50f485fc4b4c75a4f0d7dc1609e68642c60a7932f40dbae048dcb3798bc1c1e7"
+  },
+  "id": "ARLrdiS4RpnUqZlT2yYzW",
+  "tags": []
+}
