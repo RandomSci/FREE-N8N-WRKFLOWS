@@ -1,0 +1,238 @@
+{
+  "name": "AI Booking Agent With Tools",
+  "nodes": [
+    {
+      "id": "c1",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "b5b337c3-0b65-436b-ac48-795336595ef2",
+      "parameters": {
+        "public": true,
+        "mode": "hostedChat",
+        "initialMessages": "Hi! I can book you a free automation audit call. What day works for you?",
+        "options": {
+          "title": "Book a free audit",
+          "subtitle": "Selwyn Builds booking assistant"
+        }
+      }
+    },
+    {
+      "id": "c2",
+      "name": "Booking agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        300,
+        300
+      ],
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are the booking assistant for Selwyn Builds, a small automation agency.\nYou book free 30 minute automation audit calls.\nCalls can be booked Monday to Friday, 9am to 5pm New York time, on the hour.\nToday is {{ $now.setZone('America/New_York').toFormat('cccc, LLLL d, yyyy') }}.\n\nRules\n1. Before you offer or book any time, use the Check bookings tool to see which slots are taken.\n2. If the time they ask for is taken, offer the closest free time on the same day.\n3. You need their name and email before booking. Ask for anything missing.\n4. Book with the Book a call tool, then confirm the day, date and time in one short message.\nKeep every reply short and friendly."
+        }
+      }
+    },
+    {
+      "id": "c3",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        120,
+        540
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      }
+    },
+    {
+      "id": "c4",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        300,
+        540
+      ],
+      "parameters": {
+        "contextWindowLength": 10
+      }
+    },
+    {
+      "id": "c5",
+      "name": "Check bookings",
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        540
+      ],
+      "parameters": {
+        "toolDescription": "Returns every booked call with its date and time. Use it to see which slots are already taken.",
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "Bookings"
+        },
+        "returnAll": true
+      }
+    },
+    {
+      "id": "c6",
+      "name": "Book a call",
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        540
+      ],
+      "parameters": {
+        "toolDescription": "Books a call by saving a new row. Only use it after checking the slot is free.",
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "Bookings"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $fromAI('name', 'Full name of the person booking', 'string') }}",
+            "email": "={{ $fromAI('email', 'Email address of the person booking', 'string') }}",
+            "date": "={{ $fromAI('date', 'Date of the call in YYYY-MM-DD format', 'string') }}",
+            "time": "={{ $fromAI('time', 'Start time of the call in New York time, like 3:00 PM', 'string') }}",
+            "topic": "={{ $fromAI('topic', 'What they want help with, in a few words', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Booking agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Booking agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Booking agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check bookings": {
+      "ai_tool": [
+        [
+          {
+            "node": "Booking agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book a call": {
+      "ai_tool": [
+        [
+          {
+            "node": "Booking agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
