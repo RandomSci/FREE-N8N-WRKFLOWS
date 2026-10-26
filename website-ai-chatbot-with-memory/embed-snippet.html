@@ -1,0 +1,25 @@
+<!-- Paste this right before the closing </body> tag of your website -->
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+<style>
+  :root {
+    --chat--color--primary: #6b3f22;
+    --chat--color--primary-shade-50: #5a341c;
+    --chat--header--background: #3b2a1e;
+  }
+</style>
+<script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+  createChat({
+    webhookUrl: 'YOUR_CHAT_URL',
+    initialMessages: ['Hi! Welcome to Bean There.', 'Ask me about our menu or hours.'],
+    i18n: {
+      en: {
+        title: 'Bean There',
+        subtitle: 'Ask us anything about the shop',
+        footer: '',
+        getStarted: 'New conversation',
+        inputPlaceholder: 'Type your question...',
+      },
+    },
+  });
+</script>
