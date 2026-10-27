@@ -1,0 +1,366 @@
+{
+  "name": "AI Lead Qualifier",
+  "nodes": [
+    {
+      "id": "ab3a1be9-1d6f-46b3-abe4-3f58e630414c",
+      "name": "New lead form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "1779e807-cef4-4f72-892d-52b79ab4733e",
+      "parameters": {
+        "formTitle": "Get a free automation plan",
+        "formDescription": "Tell us about your business and we will reply right away.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Business type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Dental clinic"
+                  },
+                  {
+                    "option": "Real estate"
+                  },
+                  {
+                    "option": "Gym"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Leads per month",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What do you need help with?",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "path": "ai-lead"
+        }
+      }
+    },
+    {
+      "id": "af9a8187-0332-4305-a0df-5cf53039dd1c",
+      "name": "Clean the data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8c00b27-88f0-42d4-8f3c-fd64ff6831fd",
+              "name": "name",
+              "value": "={{ $json.Name.trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "182f58e2-436e-4945-b278-ea897789f275",
+              "name": "email",
+              "value": "={{ $json.Email.toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "60a53d9a-da6f-4ae6-8d18-04d001c1ddea",
+              "name": "business_type",
+              "value": "={{ $json['Business type'] }}",
+              "type": "string"
+            },
+            {
+              "id": "a1749e0d-9cc7-41ab-a034-e72317a0367a",
+              "name": "leads_per_month",
+              "value": "={{ Number($json['Leads per month']) }}",
+              "type": "number"
+            },
+            {
+              "id": "23aeb3de-0c35-4059-bb6c-9a01f6f10ec8",
+              "name": "need",
+              "value": "={{ $json['What do you need help with?'].trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "webhookId": null
+    },
+    {
+      "id": "aa60d33a-a79a-4409-a02d-52b5a7cbe912",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name: {{ $json.name }}\nBusiness: {{ $json.business_type }}\nLeads per month: {{ $json.leads_per_month }}\nNeed: {{ $json.need }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You qualify leads for a small automation agency. Hot means a real business with a clear problem and at least 30 leads a month. Warm means the need is vague. Cold means no clear need. Then write a reply, two sentences max, that mentions their exact problem. Hot leads get invited to a free audit call."
+        }
+      },
+      "webhookId": null
+    },
+    {
+      "id": "35737d54-89d8-46cb-9a5f-dcc15f1d9a80",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        380,
+        520
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {
+          "temperature": 0.3,
+          "responsesApiEnabled": false
+        }
+      },
+      "webhookId": null
+    },
+    {
+      "id": "ef09669f-6909-4b16-b0bb-fbb1ec8058b6",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        520
+      ],
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"priority\": \"hot\",\n  \"reason\": \"Real business losing patients after hours\",\n  \"reply\": \"Hi, missed calls after 5pm cost you new patients. Want a free audit call this week?\"\n}"
+      },
+      "webhookId": null
+    },
+    {
+      "id": "c4634246-63c2-40b6-90ae-085eaaf1e35b",
+      "name": "Prepare the lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        700,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ccc1fef7-3537-41fb-8153-af859f891ad8",
+              "name": "name",
+              "value": "={{ $('Clean the data').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "0df0414b-f584-4c31-bfe9-e5350c723a3b",
+              "name": "email",
+              "value": "={{ $('Clean the data').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "4a4725e3-e41b-4efe-81fb-fa95c4030078",
+              "name": "business_type",
+              "value": "={{ $('Clean the data').item.json.business_type }}",
+              "type": "string"
+            },
+            {
+              "id": "3a9f7408-0b3d-4a57-b581-e95a27e2f5e2",
+              "name": "leads_per_month",
+              "value": "={{ $('Clean the data').item.json.leads_per_month }}",
+              "type": "number"
+            },
+            {
+              "id": "41a027ed-c3ea-4779-ab56-328e2384e486",
+              "name": "need",
+              "value": "={{ $('Clean the data').item.json.need }}",
+              "type": "string"
+            },
+            {
+              "id": "b1f25cab-fd65-47db-9b37-1bb16a2d02f0",
+              "name": "priority",
+              "value": "={{ $json.output.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "1f469622-1ad6-4d11-bbab-5916ca8562f0",
+              "name": "reason",
+              "value": "={{ $json.output.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "af31c68f-aca9-47bc-9a80-dcdeb9026a5d",
+              "name": "reply",
+              "value": "={{ $json.output.reply }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "webhookId": null
+    },
+    {
+      "id": "943b7f1c-dca8-4fe7-a513-cf310bd4926a",
+      "name": "Save lead",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        920,
+        300
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "AI Leads"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "webhookId": null
+    },
+    {
+      "id": "b61da9e7-859e-4730-8d78-6fb5651de507",
+      "name": "Show reply",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        1140,
+        300
+      ],
+      "webhookId": "9918325c-f2b1-4af2-a039-17833d0a56dd",
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Thanks!",
+        "completionMessage": "={{ $json.reply }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "New lead form": {
+      "main": [
+        [
+          {
+            "node": "Clean the data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean the data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Prepare the lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare the lead": {
+      "main": [
+        [
+          {
+            "node": "Save lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save lead": {
+      "main": [
+        [
+          {
+            "node": "Show reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

@@ -1,0 +1,325 @@
+{
+  "name": "Lead Form With Instant Reply",
+  "nodes": [
+    {
+      "id": "18fd9feb-455a-446e-baaf-044e031bda9a",
+      "name": "New lead form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "2d042705-f258-404b-9351-9454238cc414",
+      "parameters": {
+        "formTitle": "Get a free automation plan",
+        "formDescription": "Tell us about your business and we will reply right away.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Business type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Dental clinic"
+                  },
+                  {
+                    "option": "Real estate"
+                  },
+                  {
+                    "option": "Gym"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Leads per month",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "path": "lead-form"
+        }
+      }
+    },
+    {
+      "id": "3fb70344-03ae-4621-bc6c-af238fb183f6",
+      "name": "Clean the data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "218c0601-0152-495a-8053-f9f5239ef47d",
+              "name": "name",
+              "value": "={{ $json.Name.trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "eec63954-4caf-4f0a-91a7-c5f91c0149d0",
+              "name": "email",
+              "value": "={{ $json.Email.toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "486f9df3-efee-4cdd-9f19-c580252cbe07",
+              "name": "business_type",
+              "value": "={{ $json['Business type'] }}",
+              "type": "string"
+            },
+            {
+              "id": "255280b9-b4f4-41b1-a6a8-10be214fe922",
+              "name": "leads_per_month",
+              "value": "={{ Number($json['Leads per month']) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "webhookId": null
+    },
+    {
+      "id": "5421ec4c-b1c5-45ba-bc64-e8f52170d1d7",
+      "name": "Is it a hot lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1b433c4f-dccb-476b-a884-280201e90a1f",
+              "leftValue": "={{ $json.leads_per_month }}",
+              "rightValue": 50,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "webhookId": null
+    },
+    {
+      "id": "953970fc-cd42-4f3b-9d71-caff8c59b7d5",
+      "name": "Hot reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        200
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "401e3b10-5a1b-44b7-aa4f-012f912c2c6d",
+              "name": "priority",
+              "value": "hot",
+              "type": "string"
+            },
+            {
+              "id": "0d4948a4-78c3-46b2-9de3-b34e773a8a04",
+              "name": "reply",
+              "value": "=Hi {{ $json.name }}, with {{ $json.leads_per_month }} leads a month, your {{ $json.business_type.toLowerCase() }} is losing money on every slow reply. Let's set up a free call this week so you never miss one again.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "webhookId": null
+    },
+    {
+      "id": "894173c3-6469-4913-a300-3b72e8b81248",
+      "name": "Standard reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        420
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "23b1b934-72e2-456f-b7cd-b48bd6ddac1d",
+              "name": "priority",
+              "value": "standard",
+              "type": "string"
+            },
+            {
+              "id": "2d40a97b-4292-4f13-aeeb-e8b504a8e956",
+              "name": "reply",
+              "value": "=Hi {{ $json.name }}, thanks for reaching out. We'll send you a few simple ideas to answer your leads faster, no call needed.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "webhookId": null
+    },
+    {
+      "id": "79ae81c1-7ca5-4c9e-a392-dbbf65f89041",
+      "name": "Save lead",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "Leads"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "webhookId": null
+    },
+    {
+      "id": "9dfcbb15-ea69-47ad-a147-ae39693de527",
+      "name": "Show reply",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        1100,
+        300
+      ],
+      "webhookId": "1aa03d61-8ed8-4ce4-876d-96614a6f1320",
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Thanks!",
+        "completionMessage": "={{ $json.reply }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "New lead form": {
+      "main": [
+        [
+          {
+            "node": "Clean the data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean the data": {
+      "main": [
+        [
+          {
+            "node": "Is it a hot lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is it a hot lead?": {
+      "main": [
+        [
+          {
+            "node": "Hot reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Standard reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hot reply": {
+      "main": [
+        [
+          {
+            "node": "Save lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Standard reply": {
+      "main": [
+        [
+          {
+            "node": "Save lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save lead": {
+      "main": [
+        [
+          {
+            "node": "Show reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
