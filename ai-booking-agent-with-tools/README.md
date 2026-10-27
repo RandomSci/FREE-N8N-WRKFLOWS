@@ -2,6 +2,9 @@
 
 An AI agent that books calls by itself. It chats with a visitor, checks which time slots are taken, offers the closest free time, collects the name and email, and saves the booking to a Data Table. Built in the Selwyn Builds tutorial **"n8n AI Agent Tools Tutorial (Your AI Books Calls by Itself)"**, episode 3 of the free n8n Full Course for Beginners.
 
+Watch it here https://youtu.be/mHllf3CGjmE
+
+![Workflow](screenshot.png)
 
 ## What it does
 
