@@ -2,6 +2,8 @@
 
 A website waitlist form sends each signup to an n8n webhook. n8n checks the email, saves the signup to a data table, and replies right away with a personal thank you. Bad data gets a 400 error, and the webhook is locked with header auth. Built in the Selwyn Builds tutorial **"n8n Webhooks Explained (Catch Data From Any App)"**, episode 5 of the free n8n Full Course for Beginners.
 
+Watch it here https://youtu.be/GAib06bQqQA
+
 ![Workflow](screenshot.png)
 
 ## What it does
