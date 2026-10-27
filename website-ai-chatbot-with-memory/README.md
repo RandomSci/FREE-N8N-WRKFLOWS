@@ -2,7 +2,7 @@
 
 An AI chatbot that remembers every visitor's conversation and runs on any website with a few lines of code. Built in the Selwyn Builds tutorial **"Build an AI Chatbot in n8n With Memory"**.
 
-Watch the full tutorial on the [Selwyn Builds YouTube channel](https://www.youtube.com/@SelwynBuilds).
+Watch it here https://youtu.be/qDNQpMm2jcI
 
 ![Workflow](screenshot.png)
 
