@@ -2,7 +2,7 @@
 
 A web form that replies to every lead in about one second, sorts hot leads, and saves every lead to a table. No custom code and no paid tools. Built in the Selwyn Builds tutorial **"How to Create a Workflow in n8n (Beginner Tutorial, Step by Step)"**, episode 1 of the free n8n Full Course for Beginners.
 
-Watch it here https://youtu.be/hiKQQaiAf2I
+Watch it here https://youtu.be/IMYMcydk39k
 
 ![Workflow](screenshot.png)
 
