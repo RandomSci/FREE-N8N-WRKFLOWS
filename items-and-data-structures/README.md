@@ -2,6 +2,8 @@
 
 A practice workflow that shows how data moves between nodes in n8n. It fetches 100 blog posts from a free test API, cleans every one of them with no loop, builds a new field with an expression, reaches back to an earlier node, then squeezes all 100 items into one list and splits them out again. Built in the Selwyn Builds tutorial **"n8n Items and Data Structures Explained"**, part of the free n8n Full Course for Beginners.
 
+Watch it here https://youtu.be/AyktmkQlor8
+
 ![Workflow](screenshot.png)
 
 ## What it does
