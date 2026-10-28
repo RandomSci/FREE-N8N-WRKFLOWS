@@ -1,0 +1,178 @@
+{
+  "name": "Items and Data Structures",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "name": "When clicking \u2018Execute workflow\u2019"
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/posts",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "name": "Get the posts"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "37416281-5e85-47b0-8bb6-e83f6c221769",
+              "name": "post_id",
+              "value": "={{ $json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "7addb282-ae42-421e-887e-8d1327e015bd",
+              "name": "post_title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "c7e1aa0a-f283-46a0-8845-a6fa145216d5",
+              "name": "summary",
+              "value": "=Post {{ $json.id }}: {{ $json.title.toUpperCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        0
+      ],
+      "name": "Clean the posts"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1838d0bf-9958-457b-8c70-47bf333ade8b",
+              "name": "userId",
+              "value": "={{ $('Get the posts').item.json.userId }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        0
+      ],
+      "name": "Add the author"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "post_title"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        896,
+        0
+      ],
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "post_title",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        0
+      ],
+      "name": "Split Out"
+    }
+  ],
+  "connections": {
+    "When clicking \u2018Execute workflow\u2019": {
+      "main": [
+        [
+          {
+            "node": "Get the posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the posts": {
+      "main": [
+        [
+          {
+            "node": "Clean the posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean the posts": {
+      "main": [
+        [
+          {
+            "node": "Add the author",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add the author": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
